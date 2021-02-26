@@ -13,6 +13,7 @@ declare(strict_types=1);
 
 namespace MonsieurBiz\SyliusAntiSpamPlugin\Entity;
 
+use DateTimeInterface;
 use Sylius\Component\Resource\Model\TimestampableTrait;
 
 class QuarantineItem implements QuarantineItemInterface
@@ -38,6 +39,11 @@ class QuarantineItem implements QuarantineItemInterface
      * @var string|null
      */
     private ?string $email = null;
+
+    /**
+     * @var DateTimeInterface|null
+     */
+    private ?DateTimeInterface $liftedAt = null;
 
     /**
      * {@inheritdoc}
@@ -98,8 +104,27 @@ class QuarantineItem implements QuarantineItemInterface
     /**
      * {@inheritdoc}
      */
+    public function getLiftedAt(): ?DateTimeInterface
+    {
+        return $this->liftedAt;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function setLiftedAt(?DateTimeInterface $liftedAt): void
+    {
+        $this->liftedAt = $liftedAt;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
     public function isQuarantined(?int $level = null): bool
     {
+        if (null !== $this->getLiftedAt()) {
+            return false;
+        }
         if (null !== $level) {
             return $level === $this->getLevel();
         }
