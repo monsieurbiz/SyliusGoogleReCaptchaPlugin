@@ -1,17 +1,28 @@
 <div class="ui center aligned">
 {% if data is not null and data.isQuarantined() %}
+    {%- set popup_content -%}
+        <h5>{{ "monsieurbiz_anti_spam.ui.the_reasons"|trans }}</h5>
+        <div class="ui list">
+        {%- for reason in data.reasonCodes -%}
+            <div class="item">
+                <i class="caret right icon"></i>
+                {{ reason|trans }}
+            </div>
+        {%- endfor -%}
+        </div>
+    {%- endset -%}
     {% if data.isQuarantined(constant('MonsieurBiz\\SyliusAntiSpamPlugin\\Entity\\QuarantineItemInterface::LEVEL_PROVEN')) %}
-    <span class="ui red label">
+    <span class="ui red label js-quarantine-details" data-variation="wide" data-html="{{ popup_content|e('html_attr') }}">
         <i class="ban icon"></i>
         {{ "monsieurbiz_anti_spam.ui.proven"|trans }}
     </span>
     {% elseif data.isQuarantined(constant('MonsieurBiz\\SyliusAntiSpamPlugin\\Entity\\QuarantineItemInterface::LEVEL_LIKELY')) %}
-    <span class="ui orange label">
+    <span class="ui orange label js-quarantine-details" data-variation="wide" data-html="{{ popup_content|e('html_attr') }}">
         <i class="ban icon"></i>
         {{ "monsieurbiz_anti_spam.ui.likely"|trans }}
     </span>
     {% elseif data.isQuarantined(constant('MonsieurBiz\\SyliusAntiSpamPlugin\\Entity\\QuarantineItemInterface::LEVEL_SUSPECTED')) %}
-    <span class="ui yellow label">
+    <span class="ui yellow label js-quarantine-details" data-variation="wide" data-html="{{ popup_content|e('html_attr') }}">
         <i class="ban icon"></i>
         {{ "monsieurbiz_anti_spam.ui.suspected"|trans }}
     </span>
