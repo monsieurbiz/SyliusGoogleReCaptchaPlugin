@@ -18,7 +18,7 @@ use ReCaptcha\Response as RecaptchaResponse;
 
 final class ReCaptcha3Validator implements ValidatorInterface
 {
-    const CAPTCHA_MINIMUM_SCORE = 0.8;
+    public const CAPTCHA_MINIMUM_SCORE = 0.8;
 
     /**
      * @var Recaptcha3ValidatorConstraints

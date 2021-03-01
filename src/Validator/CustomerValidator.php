@@ -18,7 +18,7 @@ use Sylius\Component\Core\Model\CustomerInterface;
 
 final class CustomerValidator implements ValidatorInterface
 {
-    const STRING_MINIMUM_SCORE = '0.7';
+    public const STRING_MINIMUM_SCORE = '0.7';
 
     /**
      * {@inheritdoc}
@@ -43,17 +43,19 @@ final class CustomerValidator implements ValidatorInterface
 
         if (!$object instanceof CustomerInterface) {
             $errors[] = 'monsieurbiz_anti_spam.error.object_not_customer';
-        } else {
-            // Check customer first name
-            $firstNameHelper = new StringHelper((string) $object->getFirstName());
-            if ($firstNameHelper->score < self::STRING_MINIMUM_SCORE) {
-                $errors[] = 'monsieurbiz_anti_spam.error.customer_first_name_invalid';
-            }
-            // Check customer last name
-            $lastNameHelper = new StringHelper((string) $object->getLastName());
-            if ($lastNameHelper->score < self::STRING_MINIMUM_SCORE) {
-                $errors[] = 'monsieurbiz_anti_spam.error.customer_last_name_invalid';
-            }
+
+            return $errors;
+        }
+
+        // Check customer first name
+        $firstNameHelper = new StringHelper((string) $object->getFirstName());
+        if ($firstNameHelper->score < self::STRING_MINIMUM_SCORE) {
+            $errors[] = 'monsieurbiz_anti_spam.error.customer_first_name_invalid';
+        }
+        // Check customer last name
+        $lastNameHelper = new StringHelper((string) $object->getLastName());
+        if ($lastNameHelper->score < self::STRING_MINIMUM_SCORE) {
+            $errors[] = 'monsieurbiz_anti_spam.error.customer_last_name_invalid';
         }
 
         return $errors;

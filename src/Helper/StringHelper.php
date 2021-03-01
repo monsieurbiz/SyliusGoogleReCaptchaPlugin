@@ -68,9 +68,6 @@ final class StringHelper
      */
     private function manageCharacter(string $character): void
     {
-        if (mb_strlen($character, 'UTF-8') > 1) {
-            throw new Exception(sprintf('The string "%s" is not a single character', $character));
-        }
         ++$this->numberOfCharacters;
 
         // Character is a letter
@@ -100,10 +97,6 @@ final class StringHelper
      */
     private function manageAlphabeticCharacter(string $character): void
     {
-        if (mb_strlen($character, 'UTF-8') > 1 && !ctype_alpha($character)) {
-            throw new Exception(sprintf('The string "%s" is not a single alphabetic character', $character));
-        }
-
         // Reset what we need to reset
         $this->resetNumericCount();
         $this->resetNonAlphanumericCount();
@@ -111,38 +104,10 @@ final class StringHelper
         ++$this->numberOfLetters;
 
         // Check if letter is a voyel
-        if (preg_match('/^[aeiouyAEIOUYàèìòùÀÈÌÒÙáéíóúÁÉÍÓÚâêîôûÂÊÎÔÛäëïöüÄËÏÖÜ]*$/i', $character)) {
-            ++$this->numberOfVoyels;
-            $this->currentNumberOfConsecutiveConsonants = 0;
-            ++$this->currentNumberOfConsecutiveVoyels;
-            if ($this->currentNumberOfConsecutiveVoyels > $this->maxNumberOfConsecutiveVoyels) {
-                $this->maxNumberOfConsecutiveVoyels = $this->currentNumberOfConsecutiveVoyels;
-            }
-        } else {
-            ++$this->numberOfConsonants;
-            $this->currentNumberOfConsecutiveVoyels = 0;
-            ++$this->currentNumberOfConsecutiveConsonants;
-            if ($this->currentNumberOfConsecutiveConsonants > $this->maxNumberOfConsecutiveConsonants) {
-                $this->maxNumberOfConsecutiveConsonants = $this->currentNumberOfConsecutiveConsonants;
-            }
-        }
+        $this->manageTypeOfCharacter($character);
 
         // Check if letter is a capital
-        if (ctype_upper($character)) {
-            ++$this->numberOfCapitalLetters;
-            $this->currentNumberOfConsecutiveSmallLetters = 0;
-            ++$this->currentNumberOfConsecutiveCapitalLetters;
-            if ($this->currentNumberOfConsecutiveCapitalLetters > $this->maxNumberOfConsecutiveCapitalLetters) {
-                $this->maxNumberOfConsecutiveCapitalLetters = $this->currentNumberOfConsecutiveCapitalLetters;
-            }
-        } else {
-            ++$this->numberOfSmallLetters;
-            $this->currentNumberOfConsecutiveCapitalLetters = 0;
-            ++$this->currentNumberOfConsecutiveSmallLetters;
-            if ($this->currentNumberOfConsecutiveSmallLetters > $this->maxNumberOfConsecutiveSmallLetters) {
-                $this->maxNumberOfConsecutiveSmallLetters = $this->currentNumberOfConsecutiveSmallLetters;
-            }
-        }
+        $this->manageCaseOfCharacter($character);
     }
 
     /**
@@ -162,11 +127,7 @@ final class StringHelper
         $this->resetAlphabeticCount();
         $this->resetNonAlphanumericCount();
 
-        ++$this->numberOfNumericCharacters;
-        ++$this->currentNumberOfConsecutiveNumericCharacters;
-        if ($this->currentNumberOfConsecutiveNumericCharacters > $this->maxNumberOfConsecutiveNumericCharacters) {
-            $this->maxNumberOfConsecutiveNumericCharacters = $this->currentNumberOfConsecutiveNumericCharacters;
-        }
+        $this->updateNumericCharacter();
     }
 
     /**
@@ -178,29 +139,12 @@ final class StringHelper
      */
     private function manageNonAlphanumericCharacter(string $character): void
     {
-        if (mb_strlen($character, 'UTF-8') > 1 && ctype_alnum($character)) {
-            throw new Exception(sprintf('The string "%s" is not a single non-alphanumeric character', $character));
-        }
-
         // Reset what we need to reset
         $this->resetAlphabeticCount();
         $this->resetNumericCount();
 
-        if (preg_match('/^[- \']*$/i', $character)) {
-            ++$this->numberOfNonAlphanumericCharacters;
-            $this->currentNumberOfConsecuviteSpecialCharacters = 0;
-            ++$this->currentNumberOfConsecutiveNonAlphanumericCharacters;
-            if ($this->currentNumberOfConsecutiveNonAlphanumericCharacters > $this->maxNumberOfConsecuviteNonAlphanumericCharacters) {
-                $this->maxNumberOfConsecuviteNonAlphanumericCharacters = $this->currentNumberOfConsecutiveNonAlphanumericCharacters;
-            }
-        } else {
-            ++$this->numberOfSpecialCharacters;
-            $this->currentNumberOfConsecutiveNonAlphanumericCharacters = 0;
-            ++$this->currentNumberOfConsecuviteSpecialCharacters;
-            if ($this->currentNumberOfConsecuviteSpecialCharacters > $this->maxNumberOfConsecuviteSpecialCharacters) {
-                $this->maxNumberOfConsecuviteSpecialCharacters = $this->currentNumberOfConsecuviteSpecialCharacters;
-            }
-        }
+        // List of authorized characters
+        preg_match('/^[- \']*$/i', $character) ? $this->updateNonAlphanumericCharacter() : $this->updateSpecialCharacter();
     }
 
     /**
@@ -238,56 +182,251 @@ final class StringHelper
     }
 
     /**
+     * Manage voyel and consonant characters.
+     *
+     * @param string $character
+     *
+     * @return void
+     */
+    private function manageTypeOfCharacter(string $character): void
+    {
+        preg_match('/^[aeiouyAEIOUYàèìòùÀÈÌÒÙáéíóúÁÉÍÓÚâêîôûÂÊÎÔÛäëïöüÄËÏÖÜ]*$/i', $character) ?
+            $this->updateVoyelCharacter() : $this->updateConsonantCharacter();
+    }
+
+    /**
+     * Manage capital and small character.
+     *
+     * @param string $character
+     *
+     * @return void
+     */
+    private function manageCaseOfCharacter(string $character): void
+    {
+        ctype_upper($character) ? $this->updateCapitalCharacter() : $this->updateSmallCharacter();
+    }
+
+    /**
+     * Update counters for a small character.
+     *
+     * @return void
+     */
+    private function updateSmallCharacter(): void
+    {
+        ++$this->numberOfSmallLetters;
+        $this->currentNumberOfConsecutiveCapitalLetters = 0;
+        ++$this->currentNumberOfConsecutiveSmallLetters;
+        if ($this->currentNumberOfConsecutiveSmallLetters > $this->maxNumberOfConsecutiveSmallLetters) {
+            $this->maxNumberOfConsecutiveSmallLetters = $this->currentNumberOfConsecutiveSmallLetters;
+        }
+    }
+
+    /**
+     * Update counters for a capital character.
+     *
+     * @return void
+     */
+    private function updateCapitalCharacter(): void
+    {
+        ++$this->numberOfCapitalLetters;
+        $this->currentNumberOfConsecutiveSmallLetters = 0;
+        ++$this->currentNumberOfConsecutiveCapitalLetters;
+        if ($this->currentNumberOfConsecutiveCapitalLetters > $this->maxNumberOfConsecutiveCapitalLetters) {
+            $this->maxNumberOfConsecutiveCapitalLetters = $this->currentNumberOfConsecutiveCapitalLetters;
+        }
+    }
+
+    /**
+     * Update counters for a voyel character.
+     *
+     * @return void
+     */
+    private function updateVoyelCharacter(): void
+    {
+        ++$this->numberOfVoyels;
+        $this->currentNumberOfConsecutiveConsonants = 0;
+        ++$this->currentNumberOfConsecutiveVoyels;
+        if ($this->currentNumberOfConsecutiveVoyels > $this->maxNumberOfConsecutiveVoyels) {
+            $this->maxNumberOfConsecutiveVoyels = $this->currentNumberOfConsecutiveVoyels;
+        }
+    }
+
+    /**
+     * Update counters for a consonant character.
+     *
+     * @return void
+     */
+    private function updateConsonantCharacter(): void
+    {
+        ++$this->numberOfVoyels;
+        $this->currentNumberOfConsecutiveConsonants = 0;
+        ++$this->currentNumberOfConsecutiveVoyels;
+        if ($this->currentNumberOfConsecutiveVoyels > $this->maxNumberOfConsecutiveVoyels) {
+            $this->maxNumberOfConsecutiveVoyels = $this->currentNumberOfConsecutiveVoyels;
+        }
+    }
+
+    /**
+     * Update counters for a numeric character.
+     *
+     * @return void
+     */
+    private function updateNumericCharacter(): void
+    {
+        ++$this->numberOfNumericCharacters;
+        ++$this->currentNumberOfConsecutiveNumericCharacters;
+        if ($this->currentNumberOfConsecutiveNumericCharacters > $this->maxNumberOfConsecutiveNumericCharacters) {
+            $this->maxNumberOfConsecutiveNumericCharacters = $this->currentNumberOfConsecutiveNumericCharacters;
+        }
+    }
+
+    /**
+     * Update counters for a non alpha-numeric character.
+     *
+     * @return void
+     */
+    private function updateNonAlphanumericCharacter(): void
+    {
+        ++$this->numberOfNonAlphanumericCharacters;
+        $this->currentNumberOfConsecuviteSpecialCharacters = 0;
+        ++$this->currentNumberOfConsecutiveNonAlphanumericCharacters;
+        if ($this->currentNumberOfConsecutiveNonAlphanumericCharacters > $this->maxNumberOfConsecuviteNonAlphanumericCharacters) {
+            $this->maxNumberOfConsecuviteNonAlphanumericCharacters = $this->currentNumberOfConsecutiveNonAlphanumericCharacters;
+        }
+    }
+
+    /**
+     * Update counters for a special character.
+     *
+     * @return void
+     */
+    private function updateSpecialCharacter(): void
+    {
+        ++$this->numberOfSpecialCharacters;
+        $this->currentNumberOfConsecutiveNonAlphanumericCharacters = 0;
+        ++$this->currentNumberOfConsecuviteSpecialCharacters;
+        if ($this->currentNumberOfConsecuviteSpecialCharacters > $this->maxNumberOfConsecuviteSpecialCharacters) {
+            $this->maxNumberOfConsecuviteSpecialCharacters = $this->currentNumberOfConsecuviteSpecialCharacters;
+        }
+    }
+
+    /**
      * Process a score to check if string seems to be human readable or not.
      *
      * @return void
      */
     private function calculateScore(): void
     {
-        $points = 0;
-        $maxPoints = 0;
+        $this->addCapitalLettersScore();
+        $this->addCapitalizeScore();
+        $this->addConsecutiveCapitalLettersScore();
+        $this->addConsonantLettersScore();
+        $this->addVoyelLettersScore();
+        $this->addSpecialCharactersScore();
 
-        // Non weird-capital letter
+        $this->score = round($this->points / $this->maxPoints, 2);
+    }
+
+    /**
+     * Check if the string has got a coherent number of capital letters
+     * Good example : `Monsieur Biz`
+     * Bad example : `MoNsIeUr BiZ`.
+     *
+     * @return void
+     */
+    private function addCapitalLettersScore(): void
+    {
+        // Non weird number of capital letter
         if (
             $this->numberOfCapitalLetters === $this->numberOfLetters
             || $this->numberOfCapitalLetters < 3
         ) {
-            $points += 50;
+            $this->points += 50;
         }
-        $maxPoints += 50;
+        $this->maxPoints += 50;
+    }
 
+    /**
+     * Check if the string has got a coherent capital letters location
+     * Good examples : `Monsieur Biz`, `monsieur biz`, `MONSIEUR BIZ`
+     * Bad example : `MoNsIeUr BiZ`.
+     *
+     * @return void
+     */
+    private function addCapitalizeScore(): void
+    {
         // Check capitalized string
-        if ($this->string === ucwords(mb_strtolower($this->string), '- \'') || 0 === $this->numberOfCapitalLetters) {
-            $points += 50;
+        if (
+            $this->string === ucwords(mb_strtolower($this->string), '- \'')
+            || 0 === $this->numberOfCapitalLetters
+            || $this->numberOfLetters === $this->numberOfCapitalLetters
+        ) {
+            $this->points += 50;
         }
-        $maxPoints += 50;
+        $this->maxPoints += 50;
+    }
 
+    /**
+     * Check if the string has got a coherent consecutive capital letters
+     * Good examples : `Monsieur Biz`,
+     * Bad example : `MoNsIeUr BiZ`.
+     *
+     * @return void
+     */
+    private function addConsecutiveCapitalLettersScore(): void
+    {
         // Non weird consecutive of capital letters
         if ($this->maxNumberOfConsecutiveCapitalLetters <= 2) {
-            $points += (3 - $this->maxNumberOfConsecutiveCapitalLetters) * 50;
+            $this->points += (3 - $this->maxNumberOfConsecutiveCapitalLetters) * 50;
         }
-        $maxPoints += (3 - 0) * 50;
+        $this->maxPoints += 150;
+    }
 
+    /**
+     * Check if the string has got a coherent consecutive capital letters
+     * Good examples : `Monsieur Biz`,
+     * Bad example : `Mrbz`.
+     *
+     * @return void
+     */
+    private function addConsonantLettersScore(): void
+    {
         // Non weird consecutive of consonants letters
         if ($this->maxNumberOfConsecutiveConsonants <= 4) {
-            $points += (5 - $this->maxNumberOfConsecutiveConsonants) * 10;
+            $this->points += (5 - $this->maxNumberOfConsecutiveConsonants) * 10;
         }
-        $maxPoints += (5 - 0) * 10;
+        $this->maxPoints += 50;
+    }
 
+    /**
+     * Check if the string has got a coherent consecutive capital letters
+     * Good examples : `Monsieur Biz`,
+     * Bad example : `Moieur Biz`.
+     *
+     * @return void
+     */
+    private function addVoyelLettersScore(): void
+    {
         // Non weird consecutive of voyels letters
         if ($this->maxNumberOfConsecutiveVoyels <= 4) {
-            $points += (5 - $this->maxNumberOfConsecutiveConsonants) * 10;
+            $this->points += (5 - $this->maxNumberOfConsecutiveConsonants) * 10;
         }
-        $maxPoints += (5 - 0) * 10;
+        $this->maxPoints += 50;
+    }
 
-        // Non alphanumeric characters are better
+    /**
+     * Check if the string has got a coherent consecutive capital letters
+     * Good examples : `Monsieur Biz`,
+     * Bad example : `Monsieur#Biz`.
+     *
+     * @return void
+     */
+    private function addSpecialCharactersScore(): void
+    {
+        // Non special characters are better
         if (0 === $this->numberOfSpecialCharacters) {
-            $points += 30;
+            $this->points += 30;
         }
-        $maxPoints += 30;
-
-        $this->points = $points;
-        $this->maxPoints = $maxPoints;
-        $this->score = round($points / $maxPoints, 2);
+        $this->maxPoints += 30;
     }
 }
