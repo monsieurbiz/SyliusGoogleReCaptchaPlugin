@@ -14,7 +14,7 @@
         <field name="updatedAt" column="updated_at" type="datetime" nullable="true">
             <gedmo:timestampable on="update"/>
         </field>
-        <field name="reasonCodes" column="reason_codes" type="array" nullable="false" />
+        <field name="reasonCodes" column="reason_codes" type="json" nullable="false" />
         <field name="level" column="level" type="integer" nullable="false" />
         <field name="email" column="email" type="string" nullable="false" length="255" />
     </entity>
