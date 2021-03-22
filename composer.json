@@ -6,8 +6,9 @@
     "license": "MIT",
     "require": {
         "php": "~7.4",
-        "sylius/sylius": "~1.8.0",
-        "karser/karser-recaptcha3-bundle": "^0.1.16"
+        "sylius/sylius": "^1.8",
+        "karser/karser-recaptcha3-bundle": "^0.1.16",
+        "gedmo/doctrine-extensions": "^2.4.12 || ^3.0"
     },
     "require-dev": {
         "behat/behat": "^3.6.1",
@@ -43,7 +44,8 @@
         "symfony/dotenv": "^4.4",
         "symfony/flex": "^1.7",
         "symfony/web-profiler-bundle": "^4.4",
-        "phpmd/phpmd": "@stable"
+        "phpmd/phpmd": "@stable",
+        "friendsofsymfony/oauth-server-bundle": "^1.6 || >2.0.0-alpha.0 ^2.0@dev"
     },
     "prefer-stable": true,
     "autoload": {
