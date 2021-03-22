@@ -3,6 +3,8 @@ services:
         autowire: true
         autoconfigure: true
         public: false
+        bind : 
+            $karserRecaptcha3Enabled: '%karser_recaptcha3.enabled%'
 
     MonsieurBiz\SyliusAntiSpamPlugin\:
         resource: '../../*'

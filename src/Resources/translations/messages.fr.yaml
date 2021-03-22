@@ -7,3 +7,9 @@ monsieurbiz_anti_spam:
         proven: Avéré
         likely: Probable
         suspected: Suspecté
+    error:
+        missing_captcha_reponse: 'Réponse du captcha manquante.'
+        invalid_captcha_score: 'Score du captcha insuffisant.'
+        object_not_customer: 'L''objet donné n''est pas un client.'
+        customer_first_name_invalid: 'Le prénom du client n''est pas valide.'
+        customer_last_name_invalid: 'Le nom du client n''est pas valide.'
